@@ -1,28 +1,33 @@
-name: Node.js CI (npm)
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main]
+    branches: [ "main" ]
   pull_request:
-    branches: [main]
+    branches: [ "main" ]
 
 jobs:
-  build-and-test:
+  build-test-deploy:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20.x, 22.x]
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm ci
-      - name: Lint code
-        run: npm run lint
-      - name: Run tests
-        run: npm test
+          node-version: 18
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run coverage
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
+      - name: Deploy to Render
+        if: github.ref == 'refs/heads/main' && success()
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
