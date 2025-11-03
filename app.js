@@ -18,7 +18,14 @@ app.get('/greet', (req, res) => {
     res.json({ message: `Hello, ${name}!` });
 });
 
-
+// Route with URL parameters
+app.get('/user/:id', (req, res) => {
+    const userId = req.params.id;
+    if (isNaN(userId)) {
+        return res.status(400).json({ error: 'User ID must be a number' });
+    }
+    res.json({ id: parseInt(userId), name: `User${userId}` });
+});
 
 // POST route
 app.post('/calculate', (req, res) => {
